@@ -79,16 +79,137 @@ DELETE FROM "Employees" WHERE "FullName" = 'Lazy Larry';
 
 ALTER TABLE "Employees" ADD COLUMN "ParkingSpot" VARCHAR(10);
 
+------------------------------------------------------------------------------
+
+-- 03-03 - Foreign Keys - The SQL
 
 
 
+-- In your CompanyDatabase, add a table named Departments with the following columns:
+-- Id as a primary key
+-- DepartmentName as text
+-- Building as text
+
+CREATE TABLE "Departments" (
+  "Id"                SERIAL PRIMARY KEY, 
+  "DepartmentName"    TEXT,
+  "Building"          TEXT
+
+);
+
+--  Add a Foreign key DepartmentId to your Employees Table. If you have trouble, remove the existing employees by running truncate table "Employees".
+
+ALTER TABLE "Employees" ADD COLUMN "DepartmentId" INTEGER NULL REFERENCES "Departments" ("Id");
 
 
+-- Add tables named Products and Orders.
+
+-- Products should have the columns:
+-- Id as a primary key
+-- Price as a double
+-- Name as a string
+-- Description as a string
+-- QuantityInStock as an integer
+
+-- Orders should have the columns:
+-- Id as a primary key
+-- OrderNumber as a string
+-- DatePlaced as a datetime
+-- Email as a string
+
+CREATE TABLE "Products" (
+  "Id"               SERIAL PRIMARY KEY,
+  "Price"            FLOAT,
+  "Name"             TEXT,
+  "Description"      TEXT,
+  "QuantityInStock"  INT
+);
+
+CREATE TABLE "Orders" (
+  "Id"             SERIAL PRIMARY KEY,
+  "OrderNumber"    TEXT,
+  "Name"           TEXT,
+  "DatePlaced"     TIMESTAMP,
+  "Email"          TEXT
+);
 
 
+--  In our company, one Order can have many Products and one Product can have many Orders. This will be a Many-to-Many relationship. Create the necessary table ProductOrders, foreign keys, and the OrderQuantity field needed for this to happen.
 
 
+CREATE TABLE "ProductOrders" (
+  "Id"            SERIAL PRIMARY KEY,
+  "productId"     INTEGER REFERENCES "Products" ("Id"),
+  "OrderId"       INTEGER REFERENCES "Orders" ("Id"),
+  "OrderQuantity" INT
+);
 
 
+--  Insert the following Departments
+
+INSERT INTO "Departments" ("DepartmentName", "Building") VALUES ('Development', 'Main');
+INSERT INTO "Departments" ("DepartmentName", "Building") VALUES ('Marketing', 'North');
+
+-- Insert the following Employees
+
+INSERT INTO "Employees" ("FullName", "Salary", "JobPosition", "PhoneExtension", "IsPartTime", "DepartmentId")
+VALUES ('Tim Smith', '40000', 'Programmer', 123, 'false', 1);  --should I add the bool value into quotes?!
+
+INSERT INTO "Employees" ("FullName", "Salary", "JobPosition", "PhoneExtension", "IsPartTime", "DepartmentId")
+VALUES ('Barbara Ramsey', 80000, 'Manager', 234, 'false', 1);
+
+INSERT INTO "Employees" ("FullName", "Salary", "JobPosition", "PhoneExtension", "IsPartTime", "DepartmentId")
+VALUES ('Tom Jones', 32000, 'Admin', 456, 'true', 2);
+
+
+--Insert the following Products
+
+INSERT INTO "Products" ("Price", "Name", "Description", "QuantityInStock")
+VALUES (12.45, 'Widget', 'The Original Widget', 100);
+
+INSERT INTO "Products" ("Price", "Name", "Description", "QuantityInStock")
+VALUES (99.99, 'Flowbee', 'Perfect for haircuts', 3);
+
+
+--  Insert a new order with order number X529, placed on Jan 1st, 2020 at 4:55PM, by someone with the email address "person@example.com"
+
+INSERT INTO "Orders" ("OrderNumber", "DatePlaced", "Email")
+VALUES ('X529', 'Jan 1 2020 at 4:55PM', 'person@example.com');
+
+
+--  Add an order quantity of 3 for the product named Widget to the order X529
+
+INSERT INTO "ProductOrders" ("productId", "OrderId", "OrderQuantity")
+VALUES (1, 1, 3);
+
+--  Add an order quantity of 2 for the product named Flowbee to the order X529
+
+INSERT INTO "ProductOrders" ("productID", "OrderID", "OrderQuantity")
+VALUES (2, 1, 2);
+
+--  Given a department id, return all employees in the department.
+
+SELECT "FullName" FROM "Employees" WHERE "DepartmentId" = 2;
+
+--  Given a department name, return all the phone extensions.
+
+SELECT "Employees"."PhoneExtension"
+FROM "Employees" 
+JOIN "Departments" ON "Departments"."Id" = "Employees"."DepartmentId"
+WHERE "Departments"."DepartmentName" = 'Development';
+
+
+--  Find all orders that contain the product id of 2.
+
+SELECT *
+FROM "Orders"
+JOIN "ProductOrders" ON "ProductOrders"."OrderId" = "Orders"."Id"
+JOIN "Products" ON "Products"."Id" = "ProductOrders"."productId"
+WHERE "productId" = 2;
+
+--  Remove the Flowbee product from order with order number X529.
+
+DELETE FROM "ProductOrder"
+WHERE "Orders"."Number" = "X529" AND "Product"."Name" = "Flowbee"; -- not sure if it will Work
 
 
